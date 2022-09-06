@@ -2,10 +2,12 @@ package config
 
 import (
 	"errors"
-	"github.com/fs714/goiftop/utils/log"
-	"github.com/google/gopacket/pcap"
+	"net"
 	"strconv"
 	"strings"
+
+	"github.com/fs714/goiftop/utils/log"
+	"github.com/google/gopacket/pcap"
 )
 
 var IfaceListString string
@@ -34,6 +36,20 @@ type NfLogConfig struct {
 
 var IfaceList []string
 var NflogConfigList []NfLogConfig
+
+// GetOutboundInterface returns the outbound interface
+func GetOutboundInterface() (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	for _, iface := range ifaces {
+		if iface.Name == "eth0" || strings.HasPrefix(iface.Name, "enp") || strings.HasPrefix(iface.Name, "ens") {
+			return iface.Name, nil
+		}
+	}
+	return "", errors.New("failed to find outbound interface")
+}
 
 func ParseIfaces() {
 	for _, iface := range strings.Split(IfaceListString, ",") {

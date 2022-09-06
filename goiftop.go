@@ -5,6 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+
 	"github.com/fs714/goiftop/accounting"
 	"github.com/fs714/goiftop/api"
 	"github.com/fs714/goiftop/engine"
@@ -13,12 +20,6 @@ import (
 	"github.com/fs714/goiftop/utils/log"
 	"github.com/fs714/goiftop/utils/version"
 	"github.com/google/gopacket/pcap"
-	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
 )
 
 func init() {
@@ -65,8 +66,10 @@ func ArgsValidation() (err error) {
 
 	if config.Engine == engine.LibPcapEngineName || config.Engine == engine.AfpacketEngineName {
 		if config.IfaceListString == "" {
-			err = errors.New("no interface provided")
-			return
+			config.IfaceListString, err = config.GetOutboundInterface()
+			if err != nil {
+				return
+			}
 		}
 	}
 
